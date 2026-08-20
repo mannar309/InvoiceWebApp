@@ -1,0 +1,254 @@
+﻿@{
+    ViewData["Title"] = "تحميل الفواتير";
+}
+
+<div class="container mt-5" style="max-width: 540px;">
+    <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-header d-flex align-items-center gap-2 rounded-top-4"
+             style="background: linear-gradient(135deg, #0d6efd, #0a58ca); color: white; border: none; padding: 1rem 1.5rem;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="white" viewBox="0 0 16 16">
+                <path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2z" />
+                <path d="M4.5 12.5A.5.5 0 0 1 5 12h6a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5zm0-2A.5.5 0 0 1 5 10h6a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5zm0-2A.5.5 0 0 1 5 8h6a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5z" />
+            </svg>
+            <span class="fw-semibold fs-5">تحميل الفواتير بالتاريخ</span>
+        </div>
+
+        <div class="card-body p-4">
+            <form id="downloadForm" novalidate>
+
+                <!-- Date Range -->
+                <div class="mb-4">
+                    <label class="form-label text-muted small fw-semibold mb-1">نطاق التاريخ</label>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <label class="form-label small text-muted" for="dateFrom">من</label>
+                            <input type="date"
+                                   id="dateFrom"
+                                   name="submissionDateFrom"
+                                   class="form-control"
+                                   value="@ViewBag.DefaultStartDate"
+                                   required />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small text-muted" for="dateTo">إلى</label>
+                            <input type="date"
+                                   id="dateTo"
+                                   name="submissionDateTo"
+                                   class="form-control"
+                                   value="@ViewBag.DefaultEndDate"
+                                   required />
+                        </div>
+                    </div>
+                    <div id="dateError" class="text-danger small mt-1" style="display:none;">
+                        ⚠️ تاريخ البداية لا يمكن أن يكون بعد تاريخ النهاية
+                    </div>
+                </div>
+
+                <!-- Filters Row -->
+                <div class="row g-3 mb-4">
+                    <div class="col-4">
+                        <label class="form-label small text-muted" for="statusSelect">الحالة</label>
+                        <select id="statusSelect" name="status" class="form-select">
+                            <option value="Valid">Valid</option>
+                            {{--
+                            <option value="Invalid">Invalid</option> --}}
+                        </select>
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label small text-muted" for="docTypeSelect">النوع</label>
+                        <select id="docTypeSelect" name="documentType" class="form-select">
+                            <option value="i">Invoice</option>
+                            {{--
+                            <option value="c">Credit</option> --}}
+                        </select>
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label small text-muted" for="pageSizeSelect">العدد</label>
+                        <select id="pageSizeSelect" name="pageSize" class="form-select">
+                            <option value="50">50</option>
+                            <option value="100" selected>100</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Progress -->
+                <div id="progressWrapper" style="display:none;" class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <small class="text-muted" id="progressLabel">جاري التحميل...</small>
+                        <small class="text-muted fw-semibold" id="progressPct">0%</small>
+                    </div>
+                    <div class="progress" style="height: 8px; border-radius: 999px;">
+                        <div id="progressBar"
+                             class="progress-bar progress-bar-striped progress-bar-animated bg-primary"
+                             role="progressbar"
+                             style="width: 0%; border-radius: 999px;"
+                             aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit -->
+                <button type="button"
+                        class="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-2"
+                        id="downloadBtn"
+                        onclick="handleSubmit()">
+                    <svg id="btnIcon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z" />
+                        <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z" />
+                    </svg>
+                    <span id="btnText">تحميل</span>
+                </button>
+
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast notification -->
+    <div id="toastContainer" class="position-fixed bottom-0 end-0 p-3" style="z-index: 9999;">
+        <div id="toastMsg" class="toast align-items-center border-0" role="alert" aria-live="assertive">
+            <div class="d-flex">
+                <div class="toast-body" id="toastBody"></div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+        let polling;
+
+        function showToast(message, type = 'danger') {
+            const toast = document.getElementById('toastMsg');
+            const body = document.getElementById('toastBody');
+            toast.className = `toast align-items-center text-white border-0 bg-${type}`;
+            body.textContent = message;
+            const bsToast = new bootstrap.Toast(toast, { delay: 5000 });
+            bsToast.show();
+        }
+
+        function setProgress(pct) {
+            const bar = document.getElementById('progressBar');
+            const label = document.getElementById('progressPct');
+            bar.style.width = pct + '%';
+            bar.setAttribute('aria-valuenow', pct);
+            label.textContent = pct + '%';
+        }
+
+        function setLoading(isLoading) {
+            const btn = document.getElementById('downloadBtn');
+            const btnText = document.getElementById('btnText');
+            const btnIcon = document.getElementById('btnIcon');
+            const wrapper = document.getElementById('progressWrapper');
+
+            btn.disabled = isLoading;
+            btnText.textContent = isLoading ? 'جاري التحميل...' : 'تحميل';
+            wrapper.style.display = isLoading ? 'block' : 'none';
+
+            btnIcon.innerHTML = isLoading
+                ? '<span class="spinner-border spinner-border-sm" role="status"></span>'
+                : '<path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>';
+        }
+
+        function validateDates() {
+            const from = new Date($('#dateFrom').val());
+            const to = new Date($('#dateTo').val());
+            const err = document.getElementById('dateError');
+            if (from > to) {
+                err.style.display = 'block';
+                $('#dateFrom').addClass('is-invalid');
+                $('#dateTo').addClass('is-invalid');
+                return false;
+            }
+            err.style.display = 'none';
+            $('#dateFrom').removeClass('is-invalid');
+            $('#dateTo').removeClass('is-invalid');
+            return true;
+        }
+
+        $('#dateFrom, #dateTo').on('change', validateDates);
+
+        function handleSubmit() {
+            if (!validateDates()) return;
+
+            setLoading(true);
+            setProgress(0);
+
+            polling = setInterval(() => {
+                $.get('@Url.Action("GetDownloadProgress")', function (res) {
+                    setProgress(res.progress);
+                });
+            }, 1000);
+
+            $.ajax({
+                url: '@Url.Action("DownloadByDate")',
+                type: 'POST',
+                data: $('#downloadForm').serialize(),
+                xhrFields: { responseType: 'blob' },
+
+                success: function (data, status, xhr) {
+                    clearInterval(polling);
+                    const contentType = xhr.getResponseHeader("content-type") || '';
+                    const disposition = xhr.getResponseHeader("content-disposition");
+
+                    if (!contentType.includes("zip") && !contentType.includes("pdf")) {
+                        if (contentType.includes("application/json")) {
+                            data.text().then(txt => {
+                                try { showToast(JSON.parse(txt).message || JSON.parse(txt).error || "حصل خطأ أثناء التحميل"); }
+                                catch { showToast(txt); }
+                            });
+                        } else {
+                            showToast("حصل خطأ أثناء التحميل");
+                        }
+                        setLoading(false);
+                        return;
+                    }
+
+                    const blob = new Blob([data], { type: contentType });
+                    const link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+
+                    const utf8Match = disposition?.match(/filename\*\=UTF-8''([^;]+)/i);
+                    const startDate = $('#dateFrom').val().replace(/-/g, '');
+                    const endDate = $('#dateTo').val().replace(/-/g, '');
+                    link.download = utf8Match
+                        ? decodeURIComponent(utf8Match[1])
+                        : `Invoices_${startDate}_to_${endDate}.zip`;
+                    link.click();
+
+                    setProgress(100);
+                    showToast("تم تحميل الفواتير بنجاح ✓", "success");
+                    setLoading(false);
+                },
+
+                error: function (xhr) {
+                    clearInterval(polling);
+                    const tryParse = txt => {
+                        try { return JSON.parse(txt).message || JSON.parse(txt).error || txt; }
+                        catch { return txt || "حصل خطأ أثناء التحميل"; }
+                    };
+
+                    if (xhr.response?.text) {
+                        xhr.response.text().then(txt => {
+                            showToast(tryParse(txt));
+                            setLoading(false);
+                        });
+                    } else {
+                        showToast(xhr.status === 400 ? tryParse(xhr.responseText) : "حصل خطأ أثناء التحميل");
+                        setLoading(false);
+                    }
+                },
+
+                complete: function (xhr) {
+                    if (xhr.status === 204) {
+                        clearInterval(polling);
+                        showToast("لا توجد مستندات للنطاق الزمني المحدد", "warning");
+                        setLoading(false);
+                    }
+                }
+            });
+        }
+    </script>
+}
