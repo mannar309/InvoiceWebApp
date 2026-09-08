@@ -1,2 +1,1 @@
-testttjeqjei sfrshhsrijer
-fb ajhfbarbhrwy ygekby  
+This is a README file for the InvoiceDownloaderWeb project.
